@@ -1,0 +1,48 @@
+#include<LiquidCrystal.h>
+
+// initialize the library by associating any needed LCD interface pin
+// with the arduino pin number it is connected to
+const int rs = 37, en = 36, d4 = 35, d5 = 34, d6 = 33, d7 = 32;
+LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
+const int iopin = A10, analog = A8;     // Pushbutton Input to Pin No.27 and No.A8.
+
+
+void setup() {
+  // put your setup code here, to run once:
+lcd.begin(16,2);
+pinMode(analog,INPUT);  
+pinMode(LED_BUILTIN, OUTPUT);           // initialize digital pin LED_BUILTIN as an output.
+pinMode(iopin,OUTPUT);  
+lcd.print("Connected");
+delay(1000);
+lcd.clear();
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
+ // Turn off the display:
+  //lcd.noDisplay();  //no idea
+  //delay(500);
+  // Turn on the display:
+  lcd.display();
+  double value; 
+  value = analogRead(analog);
+  lcd.print(value);
+  lcd.print("  ");
+  double voltage;
+  voltage = value / 204.6;
+  lcd.print(voltage);
+  lcd.print(" V");
+  delay(1000);
+  lcd.clear();
+  if (voltage >= 3){
+    digitalWrite(LED_BUILTIN, HIGH);
+    digitalWrite(iopin,HIGH);
+    delay(1000);
+    } 
+    else{
+      digitalWrite(LED_BUILTIN, LOW);
+      digitalWrite(iopin,LOW);
+      delay(1000);
+      }
+  }

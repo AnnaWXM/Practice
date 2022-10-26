@@ -1,0 +1,122 @@
+#include <LiquidCrystal.h>
+
+// initialize the library by associating any needed LCD interface pin
+// with the arduino pin number it is connected to
+const int rs = 37, en = 36, d4 = 35, d5 = 34, d6 = 33, d7 = 32;
+const int JoyX = A8, JoyY = A9;
+LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
+
+#define Motor_L_dir_pin       7
+#define Motor_R_dir_pin       8
+#define Motor_L_pwm_pin       9
+#define Motor_R_pwm_pin       10
+
+void setup()
+{
+  Serial.begin(9600);
+  Serial.println("SMS Messages Receiver");
+  pinMode(JoyX,INPUT);  //X
+  pinMode(JoyY,INPUT);  //Y
+  pinMode(Motor_R_dir_pin,OUTPUT); //dir
+  pinMode(Motor_L_dir_pin,OUTPUT); //dir
+  pinMode(Motor_L_pwm_pin,OUTPUT); //PWM
+  pinMode(Motor_R_pwm_pin,OUTPUT); //PWM
+}
+
+void loop()                    
+{           
+  int x = analogRead(JoyX);  
+  int y = analogRead(JoyY);  
+  int x_speed, x_direction, y_speed, y_direction;
+  int pwm_L = 0, pwm_R = 0;
+  // map 0-1023 values to -10 to 10
+  // either direction or speed could be 0 to 1?
+  x_direction = map(x, 0, 1023, -10, 10);
+  y_direction = map(y, 0, 1023, -10, 10);
+  x_speed = map(x, 0, 1023, -10, 10);
+  y_speed = map(y, 0, 1023, -10, 10);
+
+  // y goes 0 to 1023, we want to move forward when y bigger than 600, move backward when less than 550
+  // 512 is the middle where there is no movement, let's make the range 480-550 where speed 0
+  if (y < 480){
+    y_direction = 0; // move backwards
+  }
+  else if (y > 550){
+    y_direction = 1; // move forwards
+  }
+  else {
+      y_direction=0;
+      y_speed = 0; // should not move?
+  }
+   
+  Serial.println(x);
+  Serial.println("");
+  Serial.println("X direction:");
+  Serial.println(x_direction);
+  Serial.println("X_speed");
+  Serial.println(x_speed);
+  Serial.println("");
+  // middle 512
+  // backwards speed -10, direction 0, y 0
+  // forwards speed 10, direction 1, y 1023
+
+  // y movement
+  if (y <= 470) {
+    digitalWrite(Motor_R_dir_pin, y_direction); // or y_direction which is 0
+    digitalWrite(Motor_L_dir_pin, y_direction);
+    digitalWrite(Motor_R_pwm_pin, y_speed); // move with y_speed
+    digitalWrite(Motor_L_pwm_pin, y_speed);
+    if (x < 480){
+    digitalWrite(Motor_R_dir_pin, 0); // turn left
+    digitalWrite(Motor_L_dir_pin, 1);
+    }
+    else if (x > 550){
+    digitalWrite(Motor_R_dir_pin, 1); // turn right
+    digitalWrite(Motor_L_dir_pin, 0);
+    }
+    else {
+    digitalWrite(Motor_R_dir_pin, y_direction); // if statements could be combined
+    digitalWrite(Motor_L_dir_pin, y_direction);
+    }
+  }
+  else if (y >= 550) {
+    digitalWrite(Motor_R_dir_pin, y_direction); // should be 1
+    digitalWrite(Motor_L_dir_pin, y_direction);
+    digitalWrite(Motor_R_pwm_pin, y_speed); // move with y_speed
+    digitalWrite(Motor_L_pwm_pin, y_speed);
+    if (x < 480){
+    digitalWrite(Motor_R_dir_pin, 0); // turn left
+    digitalWrite(Motor_L_dir_pin, 1);
+    }
+    else if (x > 550){
+    digitalWrite(Motor_R_dir_pin, 1); // turn right
+    digitalWrite(Motor_L_dir_pin, 0);
+    }
+    else {
+    digitalWrite(Motor_R_dir_pin, y_direction); // if statements could be combined better?
+    digitalWrite(Motor_L_dir_pin, y_direction);
+    }
+  }
+  else {
+    digitalWrite(Motor_R_dir_pin, y_direction); // should be 0 or 1, not sure if matters
+    digitalWrite(Motor_L_dir_pin, y_direction);
+    digitalWrite(Motor_R_pwm_pin, y_speed); // should be 0
+    digitalWrite(Motor_L_pwm_pin, y_speed);
+    if (x < 480){
+    digitalWrite(Motor_R_dir_pin, 0); // turn left
+    digitalWrite(Motor_L_dir_pin, 1);
+    digitalWrite(Motor_R_pwm_pin, 10); // we need speed here to turn
+    digitalWrite(Motor_L_pwm_pin, 10);
+    }
+    else if (x > 550){
+    digitalWrite(Motor_R_dir_pin, 1); // turn right
+    digitalWrite(Motor_L_dir_pin, 0);
+    digitalWrite(Motor_R_pwm_pin, 10); // or use x_speed but then it would be 0 here
+    digitalWrite(Motor_L_pwm_pin, 10);
+    }
+    else {
+    digitalWrite(Motor_R_dir_pin, y_direction); // if statements could be combined better?
+    digitalWrite(Motor_L_dir_pin, y_direction);
+    }
+  }    
+}

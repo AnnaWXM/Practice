@@ -1,0 +1,72 @@
+// include the library code:
+#include <LiquidCrystal.h>
+#include <TimerOne.h>
+
+// initialize the library by associating any needed LCD interface pin
+// with the arduino pin number it is connected to
+const int rs = 37, en = 36, d4 = 35, d5 = 34, d6 = 33, d7 = 32;
+LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
+const int BUTTON = 19;       // Pushbutton Input to Pin No.19
+volatile byte BUTTONState = LOW;      // To store input status
+unsigned long time1 = 0;     
+double interval = 0;
+volatile int counts = 0;
+
+
+void setup() {
+  // set up the LCD's number of columns and rows:
+  lcd.begin(20, 4);
+  pinMode(BUTTON, INPUT);  // Define BUTTON pin as Input.
+  attachInterrupt(digitalPinToInterrupt(BUTTON), rising, RISING);
+  delay(500);
+  lcd.clear();
+}
+
+
+void loop() {
+  lcd.display();
+  BUTTONState = digitalRead(BUTTON);
+  if (BUTTONState == HIGH)
+  {
+    // If input is High print "pressed"
+    lcd.setCursor(0, 0);
+    lcd.print("pressed");
+  }
+  else
+  {
+    // prints "not pressed" for any other condition
+    lcd.setCursor(0, 0);
+    lcd.print("not pressed");
+  }
+  lcd.setCursor(0, 1);
+  lcd.print("Counts: ");
+  lcd.print(counts);
+  lcd.setCursor(0, 2);
+  lcd.print("I:");
+  lcd.print(interval);
+  lcd.print(" ms");
+  double f = (1/interval)*1000;
+  lcd.setCursor(0, 3);
+  lcd.print(f);
+  lcd.print(" HZ");
+  delay(1000);
+  lcd.clear();
+}
+
+void rising() {
+  attachInterrupt(digitalPinToInterrupt(BUTTON), falling, FALLING);
+  time1 = millis();
+}
+ 
+long falling() {
+  attachInterrupt(digitalPinToInterrupt(BUTTON), rising, RISING);
+  interval = millis()-time1;
+  Counts();
+  return interval;
+}
+
+
+int Counts() {
+  counts++;
+  return counts;
+}
